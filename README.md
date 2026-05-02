@@ -35,6 +35,17 @@ docker compose up -d --build
 
 当前 `docker-compose.yml` 自带默认值，所以不复制 `.env` 也能直接启动。
 
+默认构建会锁定已经验证通过的 `xray` / `sing-box` 镜像 digest，保证可复现。
+
+如果你想跟随上游更新，也可以在 `.env` 里改成 tag，例如：
+
+```text
+XRAY_IMAGE=ghcr.io/xtls/xray-core:latest
+SINGBOX_IMAGE=ghcr.io/sagernet/sing-box:latest
+```
+
+更推荐的做法仍然是先在测试环境确认，再升级生产实例。
+
 **状态**
 ```bash
 docker compose ps
@@ -111,7 +122,11 @@ http://你的机器IP:18080
 当前主要变量：
 
 - `ADMIN_PORT`
+- `PORT_RANGE_START`
+- `PORT_RANGE_END`
 - `TZ`
+- `XRAY_IMAGE`
+- `SINGBOX_IMAGE`
 - `XRAY_BIN`
 - `XRAY_CONFIG`
 - `SINGBOX_BIN`
