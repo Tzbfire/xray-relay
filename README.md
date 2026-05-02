@@ -25,6 +25,16 @@ cd /home/liubai/docker/xray-relay
 docker compose up -d --build
 ```
 
+如果你希望先显式准备环境变量：
+
+```bash
+cd /home/liubai/docker/xray-relay
+cp .env.example .env
+docker compose up -d --build
+```
+
+当前 `docker-compose.yml` 自带默认值，所以不复制 `.env` 也能直接启动。
+
 **状态**
 ```bash
 docker compose ps
@@ -92,6 +102,35 @@ http://你的机器IP:18080
 - `11080-11200`
 - `11080-12000`
 
+**环境变量**
+
+示例文件：
+
+- [.env.example](/home/liubai/docker/xray-relay/.env.example)
+
+当前主要变量：
+
+- `ADMIN_PORT`
+- `TZ`
+- `XRAY_BIN`
+- `XRAY_CONFIG`
+- `SINGBOX_BIN`
+- `SINGBOX_CONFIG`
+- `SINGBOX_MODE`
+
+其中：
+
+- `SINGBOX_MODE=single`
+  表示当前使用“单个 sing-box 进程承载多个节点”的模式
+- `SINGBOX_MODE=per_node`
+  表示每个 sing-box 节点独立一个进程
+
+当前已验证推荐使用：
+
+```text
+SINGBOX_MODE=single
+```
+
 **日志级别**
 
 管理页已支持分别设置：
@@ -135,6 +174,8 @@ docker logs -f xray-relay
 - `singbox-config.json`：所有 `kernel=sing-box` 的节点汇总配置
 - `settings.json`：日志等级等管理设置
 
+这些文件都是运行态文件，已加入 `.gitignore`，不会被提交到仓库。
+
 **和 daed 配合使用**
 
 管理页导入节点后，会生成本地节点，例如：
@@ -153,3 +194,21 @@ pname(xray) -> must_direct
 ```
 
 如果缺少这条规则，容易出现回环或嵌套代理问题。
+
+**Git 仓库说明**
+
+当前 Git 仓库只提交这些源码和部署文件：
+
+- `.dockerignore`
+- `.gitignore`
+- `README.md`
+- `docker-compose.yml`
+- `single/`
+
+不会提交：
+
+- `nodes.json`
+- `settings.json`
+- `xray-config.json`
+- `singbox-config.json`
+- `singbox.d/`
