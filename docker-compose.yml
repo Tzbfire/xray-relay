@@ -1,5 +1,6 @@
 services:
   xray-relay:
+    image: xray-singbox-relay:latest
     build:
       context: ./single
       args:
@@ -15,10 +16,11 @@ services:
       TZ: ${TZ:-Asia/Shanghai}
       DATA_DIR: /data
       ADMIN_PORT: "${ADMIN_PORT:-18080}"
-      XRAY_BIN: /usr/local/bin/xray
+      XRAY_BIN: /opt/relay-bin/xray
       XRAY_CONFIG: /data/xray-config.json
-      SINGBOX_BIN: /usr/local/bin/sing-box
+      SINGBOX_BIN: /opt/relay-bin/sing-box
       SINGBOX_CONFIG: /data/singbox-config.json
       SINGBOX_MODE: ${SINGBOX_MODE:-single}
     volumes:
-      - ./:/data
+      - ./data:/data
+      - ./bin:/opt/relay-bin

@@ -153,11 +153,12 @@ docker logs -f xray-relay
 
 以下文件属于运行态数据，不会提交到 Git 仓库：
 
-- `nodes.json`
-- `settings.json`
-- `xray-config.json`
-- `singbox-config.json`
-- `singbox.d/`
+- `data/nodes.json`
+- `data/settings.json`
+- `data/xray-config.json`
+- `data/singbox-config.json`
+- `data/singbox.d/`
+- `bin/`
 
 这些文件已经加入 `.gitignore`。
 

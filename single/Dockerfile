@@ -10,11 +10,11 @@ FROM python:3.12-alpine
 WORKDIR /app
 
 COPY app.py /app/app.py
-COPY --from=xray-core /usr/local/bin/xray /usr/local/bin/xray
-COPY --from=singbox-core /usr/local/bin/sing-box /usr/local/bin/sing-box
+COPY --from=xray-core /usr/local/bin/xray /opt/bundled-bin/xray
+COPY --from=singbox-core /usr/local/bin/sing-box /opt/bundled-bin/sing-box
 COPY entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /usr/local/bin/xray /usr/local/bin/sing-box /entrypoint.sh
+RUN chmod +x /opt/bundled-bin/xray /opt/bundled-bin/sing-box /entrypoint.sh
 
 EXPOSE 18080 11080
 
