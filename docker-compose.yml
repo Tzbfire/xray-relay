@@ -1,0 +1,21 @@
+services:
+  xray-relay:
+    build:
+      context: ./single
+    container_name: xray-relay
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "18080:18080"
+      - "11080-11120:11080-11120"
+    environment:
+      TZ: Asia/Shanghai
+      DATA_DIR: /data
+      ADMIN_PORT: "18080"
+      XRAY_BIN: /usr/local/bin/xray
+      XRAY_CONFIG: /data/xray-config.json
+      SINGBOX_BIN: /usr/local/bin/sing-box
+      SINGBOX_CONFIG: /data/singbox-config.json
+      SINGBOX_MODE: single
+    volumes:
+      - ./:/data

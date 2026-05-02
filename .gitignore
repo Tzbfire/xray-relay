@@ -1,0 +1,9 @@
+nodes.json
+settings.json
+xray-config.json
+singbox-config.json
+singbox.d/
+single/xray
+single/sing-box
+__pycache__/
+*.pyc
