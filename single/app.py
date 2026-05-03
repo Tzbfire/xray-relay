@@ -31,6 +31,8 @@ SINGBOX = None
 SINGBOX_PROCS: dict[str, subprocess.Popen] = {}
 SINGBOX_MODE = os.environ.get("SINGBOX_MODE", "single").strip().lower()
 CORE_LOCK = threading.Lock()
+SERVER = None
+SHUTDOWN_EVENT = threading.Event()
 
 
 def forward_xray_output(proc: subprocess.Popen):
@@ -107,6 +109,7 @@ def clear_flash_headers(handler):
 
 class DualStackServer(ThreadingHTTPServer):
     address_family = socket.AF_INET6
+    daemon_threads = True
 
     def server_bind(self):
         try:
@@ -1310,6 +1313,35 @@ def stop_singbox_single():
     SINGBOX = None
 
 
+def cleanup_cores():
+    with CORE_LOCK:
+        stop_xray()
+        stop_singbox_single()
+        stop_all_singbox()
+
+
+def request_shutdown(source: str):
+    global SERVER
+    if SHUTDOWN_EVENT.is_set():
+        return
+    SHUTDOWN_EVENT.set()
+    try:
+        sys.stdout.write(f"[shutdown] received {source}, stopping relay cores\n")
+        sys.stdout.flush()
+    except Exception:
+        pass
+    if SERVER is not None:
+        threading.Thread(target=SERVER.shutdown, daemon=True).start()
+
+
+def handle_termination(signum, _frame):
+    try:
+        source = signal.Signals(signum).name
+    except Exception:
+        source = f"signal {signum}"
+    request_shutdown(source)
+
+
 def start_xray():
     global XRAY
     proc = subprocess.Popen(
@@ -1663,7 +1695,15 @@ if __name__ == "__main__":
     atexit.register(stop_xray)
     atexit.register(stop_singbox_single)
     atexit.register(stop_all_singbox)
+    signal.signal(signal.SIGTERM, handle_termination)
+    signal.signal(signal.SIGINT, handle_termination)
     bootstrap_nodes = load_nodes()
     restart_cores(bootstrap_nodes)
-    server = DualStackServer(("::", ADMIN_PORT), RelayAdminHandler)
-    server.serve_forever()
+    SERVER = DualStackServer(("::", ADMIN_PORT), RelayAdminHandler)
+    try:
+        SERVER.serve_forever()
+    finally:
+        try:
+            SERVER.server_close()
+        finally:
+            cleanup_cores()

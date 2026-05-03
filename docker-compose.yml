@@ -8,7 +8,6 @@ services:
         SINGBOX_IMAGE: ${SINGBOX_IMAGE:-ghcr.io/sagernet/sing-box@sha256:9bed1fcb406bd971d1b48c7f824e5128d63543ca278cdcd6b5737c19941e404d}
     container_name: xray-relay
     restart: unless-stopped
-    user: "1000:1000"
     ports:
       - "${ADMIN_PORT:-18080}:${ADMIN_PORT:-18080}"
       - "${PORT_RANGE_START:-11080}-${PORT_RANGE_END:-11120}:${PORT_RANGE_START:-11080}-${PORT_RANGE_END:-11120}"
