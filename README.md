@@ -34,7 +34,7 @@ docker compose up -d --build
 **状态**
 ```bash
 docker compose ps
-docker logs -f xray-relay
+docker logs -f xray-singbox-relay
 ```
 
 **管理页**
@@ -146,7 +146,7 @@ SINGBOX_IMAGE=ghcr.io/sagernet/sing-box:latest
 然后执行：
 
 ```bash
-docker logs -f xray-relay
+docker logs -f xray-singbox-relay
 ```
 
 **运行时文件**

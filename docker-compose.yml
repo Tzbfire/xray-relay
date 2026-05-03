@@ -6,7 +6,7 @@ services:
       args:
         XRAY_IMAGE: ${XRAY_IMAGE:-ghcr.io/xtls/xray-core:26.4.17@sha256:1880a26aee27e82d779b9632a88d5256403e8b33d9abffa1c7920f2fffb73bc3}
         SINGBOX_IMAGE: ${SINGBOX_IMAGE:-ghcr.io/sagernet/sing-box@sha256:9bed1fcb406bd971d1b48c7f824e5128d63543ca278cdcd6b5737c19941e404d}
-    container_name: xray-relay
+    container_name: xray-singbox-relay
     restart: unless-stopped
     ports:
       - "${ADMIN_PORT:-18080}:${ADMIN_PORT:-18080}"
