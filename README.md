@@ -182,6 +182,10 @@ pname(xray) -> must_direct
 
 否则可能出现回环或嵌套代理问题。
 
+相关参考文档：
+
+- `dae` 路由规则中文整理版：[docs/routing.zh-CN.md](docs/routing.zh-CN.md)
+
 **Git 仓库说明**
 
 Git 仓库只提交这些源码和部署文件：
