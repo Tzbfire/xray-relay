@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Relay Admin</title>
+    <link rel="stylesheet" href="/static/app.css">
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">R</div>
+          <div>
+            <div class="brand-kicker">Relay Admin</div>
+            <div class="brand-title">Xray / sing-box 中转管理</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>API 在线</span>
+          </div>
+          <button id="refresh-button" class="button button-primary">刷新状态</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Overview</div>
+          <h1>Xray 与 sing-box 中转管理</h1>
+          <p>
+            独立静态前端通过 Python API 驱动，保留现有节点导入、编辑、删除和运行时控制逻辑。
+          </p>
+        </div>
+
+        <div class="hero-metrics">
+          <div class="metric-card metric-large">
+            <span>节点总数</span>
+            <strong id="stat-nodes">0</strong>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <span>Xray</span>
+              <strong id="stat-xray">0</strong>
+            </div>
+            <div class="metric-card">
+              <span>sing-box</span>
+              <strong id="stat-singbox">0</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="flash" class="flash hidden"></div>
+
+      <main class="main-grid">
+        <section class="panel panel-table">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">Nodes</div>
+              <h2>本地中转节点</h2>
+            </div>
+            <div class="panel-note">建议保留 `pname(xray) -> must_direct`，避免回环。</div>
+          </div>
+
+          <div class="table-shell">
+            <table>
+              <thead>
+                <tr>
+                  <th>节点</th>
+                  <th>本地出口</th>
+                  <th>远端地址</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="nodes-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="side-stack">
+          <section class="panel panel-form panel-highlight">
+            <div class="panel-head compact">
+              <div>
+                <div class="panel-kicker">Import</div>
+                <h2>导入新节点</h2>
+              </div>
+            </div>
+            <form id="import-form" class="stack">
+              <label class="field">
+                <span>分享链接</span>
+                <textarea name="share_link" placeholder="vmess:// / vless:// / trojan:// / ss:// / hysteria2:// / tuic://"></textarea>
+              </label>
+              <label class="field">
+                <span>节点名称</span>
+                <input name="name_override" placeholder="可选">
+              </label>
+              <div class="form-grid">
+                <label class="field">
+                  <span>本地端口</span>
+                  <input name="local_port" id="import-port" placeholder="11080">
+                </label>
+                <label class="field">
+                  <span>内核</span>
+                  <select name="kernel">
+                    <option value="xray">xray</option>
+                    <option value="sing-box">sing-box</option>
+                  </select>
+                </label>
+              </div>
+              <button type="submit" class="button button-primary button-block">导入并重载</button>
+            </form>
+          </section>
+
+          <section class="panel panel-form">
+            <div class="panel-head compact">
+              <div>
+                <div class="panel-kicker">Logging</div>
+                <h2>日志级别</h2>
+              </div>
+            </div>
+            <form id="settings-form" class="stack">
+              <div class="form-grid">
+                <label class="field">
+                  <span>Xray</span>
+                  <select name="xray_log_level">
+                    <option value="debug">debug</option>
+                    <option value="info">info</option>
+                    <option value="warning">warning</option>
+                    <option value="error">error</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>sing-box</span>
+                  <select name="singbox_log_level">
+                    <option value="trace">trace</option>
+                    <option value="debug">debug</option>
+                    <option value="info">info</option>
+                    <option value="warn">warn</option>
+                    <option value="error">error</option>
+                    <option value="fatal">fatal</option>
+                    <option value="panic">panic</option>
+                  </select>
+                </label>
+              </div>
+              <button type="submit" class="button button-secondary button-block">保存设置</button>
+            </form>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <dialog id="edit-dialog" class="dialog">
+      <form id="edit-form" class="stack dialog-form">
+        <div class="dialog-head">
+          <div>
+            <div class="panel-kicker">编辑节点</div>
+            <h3>编辑节点</h3>
+          </div>
+          <button type="button" id="close-edit" class="button button-ghost">关闭</button>
+        </div>
+        <input type="hidden" name="id">
+        <label class="field">
+          <span>节点名称</span>
+          <input name="name_override" placeholder="可选">
+        </label>
+        <div class="form-grid">
+          <label class="field">
+            <span>本地端口</span>
+            <input name="local_port">
+          </label>
+          <label class="field">
+            <span>内核</span>
+            <select name="kernel">
+              <option value="xray">xray</option>
+              <option value="sing-box">sing-box</option>
+            </select>
+          </label>
+        </div>
+        <label class="field">
+          <span>分享链接</span>
+          <textarea name="share_link"></textarea>
+        </label>
+        <button type="submit" class="button button-primary button-block">保存并重载</button>
+      </form>
+    </dialog>
+
+    <dialog id="delete-dialog" class="dialog dialog-delete">
+      <div class="stack dialog-form">
+        <div class="dialog-head">
+          <div>
+            <div class="panel-kicker">删除节点</div>
+            <h3>删除节点</h3>
+          </div>
+        </div>
+        <p class="dialog-copy" id="delete-copy">
+          确认删除这个节点吗？删除后会自动重载对应运行时配置。
+        </p>
+        <div class="dialog-actions">
+          <button type="button" id="cancel-delete" class="button button-ghost">取消</button>
+          <button type="button" id="confirm-delete" class="button button-danger">确认删除</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

@@ -10,6 +10,7 @@ FROM python:3.12-alpine
 WORKDIR /app
 
 COPY app.py /app/app.py
+COPY relay_admin /app/relay_admin
 COPY --from=xray-core /usr/local/bin/xray /opt/bundled-bin/xray
 COPY --from=singbox-core /usr/local/bin/sing-box /opt/bundled-bin/sing-box
 COPY entrypoint.sh /entrypoint.sh

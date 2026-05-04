@@ -1,0 +1,98 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "inbounds": [
+    {
+      "type": "vless",
+      "tag": "vless-in",
+      "listen": "0.0.0.0",
+      "listen_port": 21443,
+      "users": [
+        {
+          "uuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "certificate_path": "/etc/sing-box/server.crt",
+        "key_path": "/etc/sing-box/server.key"
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/vless"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "trojan-in",
+      "listen": "0.0.0.0",
+      "listen_port": 22443,
+      "users": [
+        {
+          "password": "trojan-pass-123"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "certificate_path": "/etc/sing-box/server.crt",
+        "key_path": "/etc/sing-box/server.key"
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/trojan"
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "ss-in",
+      "listen": "0.0.0.0",
+      "listen_port": 23888,
+      "method": "aes-256-gcm",
+      "password": "ss-pass-123"
+    },
+    {
+      "type": "hysteria2",
+      "tag": "hy2-in",
+      "listen": "0.0.0.0",
+      "listen_port": 24443,
+      "users": [
+        {
+          "password": "hy2-pass-123"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "certificate_path": "/etc/sing-box/server.crt",
+        "key_path": "/etc/sing-box/server.key"
+      }
+    },
+    {
+      "type": "tuic",
+      "tag": "tuic-in",
+      "listen": "0.0.0.0",
+      "listen_port": 25443,
+      "users": [
+        {
+          "uuid": "22222222-2222-2222-2222-222222222222",
+          "password": "tuic-pass-123"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "certificate_path": "/etc/sing-box/server.crt",
+        "key_path": "/etc/sing-box/server.key"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ],
+  "route": {
+    "final": "direct"
+  }
+}

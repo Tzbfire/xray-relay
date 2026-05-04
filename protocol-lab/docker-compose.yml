@@ -1,0 +1,19 @@
+services:
+  protocol-lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: protocol-lab-2
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/etc/sing-box/config.json:ro
+      - ./server.crt:/etc/sing-box/server.crt:ro
+      - ./server.key:/etc/sing-box/server.key:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 21443 && nc -z 127.0.0.1 22443 && nc -z 127.0.0.1 23888 && nc -z 127.0.0.1 24443 && nc -z 127.0.0.1 25443"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+    command: ["run", "-c", "/etc/sing-box/config.json"]

@@ -5,6 +5,7 @@
 - 管理页端口：`18080`
 - 代理端口范围：`11080-11120`
 - Docker `bridge` 网络
+- 前后端分离：Python 提供 JSON API 与内核管理，管理页为静态前端
 - `xray` 单进程承载所有 `kernel=xray` 的节点
 - `sing-box` 单进程承载所有 `kernel=sing-box` 的节点
 
@@ -42,6 +43,13 @@ docker logs -f xray-singbox-relay
 http://127.0.0.1:18080
 http://你的机器IP:18080
 ```
+
+说明：
+
+- 页面资源位于 `single/relay_admin/static/`
+- 后端继续由 Python 提供 API 与进程管理
+- 前端通过 `/api/*` 接口完成节点和设置操作
+- 请通过 `http://127.0.0.1:18080` 访问管理页，不再支持 `file://` 直开静态页面进行完整交互
 
 **内核建议**
 
