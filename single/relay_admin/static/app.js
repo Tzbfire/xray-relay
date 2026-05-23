@@ -92,13 +92,19 @@ function renderNodes(nodes) {
     .map((node) => {
       const meta = [node.kernel, node.protocol, node.network].filter(Boolean).join(" / ");
       const socks = `socks5://127.0.0.1:${node.local_port}#${node.name}`;
+      const http = `http://127.0.0.1:${node.local_port}`;
       return `
         <tr>
           <td>
             <div class="node-title">${escapeHtml(node.name)}</div>
             <div class="node-meta">${escapeHtml(meta)}</div>
           </td>
-          <td class="mono">${escapeHtml(socks)}</td>
+          <td>
+            <div class="proxy-list mono">
+              <div class="proxy-item"><span class="proxy-label">SOCKS5</span>${escapeHtml(socks)}</div>
+              <div class="proxy-item"><span class="proxy-label">HTTP</span>${escapeHtml(http)}</div>
+            </div>
+          </td>
           <td>${escapeHtml(node.address)}:${escapeHtml(node.port)}</td>
           <td>
             <div class="row-actions">
