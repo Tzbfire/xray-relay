@@ -9,6 +9,13 @@ from .share_links import parse_share_link, update_node
 from .storage import atomic_write_json, load_nodes, load_settings
 
 
+def parse_share_links(raw_value: str) -> list[str]:
+    links = [line.strip() for line in (raw_value or "").splitlines() if line.strip()]
+    if not links:
+        raise ValueError("缺少分享链接")
+    return links
+
+
 def parse_local_port(raw_value: str, fallback: int | None = None) -> int:
     value = (raw_value or "").strip()
     local_port = int(value) if value else fallback
@@ -28,19 +35,55 @@ def ensure_port_available(nodes, local_port: int, exclude_node_id: str | None = 
         raise ValueError(f"本地端口已存在: {local_port}")
 
 
+def next_available_port(used_ports: set[int], start_port: int) -> int:
+    port = start_port
+    while port in used_ports:
+        port += 1
+    if port <= 0 or port > 65535:
+        raise ValueError("可用本地端口必须在 1 到 65535 之间")
+    return port
+
+
 def import_node(form):
     nodes = load_nodes()
-    local_port = parse_local_port(form.get("local_port", [""])[0], fallback=next_port(nodes))
-    ensure_port_available(nodes, local_port)
-    share_link = form.get("share_link", [""])[0]
+    requested_port = form.get("local_port", [""])[0]
+    share_links = parse_share_links(form.get("share_link", [""])[0])
     name_override = form.get("name_override", [""])[0]
     kernel = normalize_kernel(form.get("kernel", ["xray"])[0])
-    node = parse_share_link(share_link, local_port, name_override)
-    node["kernel"] = kernel
-    validate_kernel_for_node(node)
-    nodes.append(node)
-    persist_and_reload(nodes)
-    return f"已导入节点“{node['name']}”，内核 {kernel}，本地端口 {local_port}"
+
+    if len(share_links) == 1:
+        local_port = parse_local_port(requested_port, fallback=next_port(nodes))
+        ensure_port_available(nodes, local_port)
+        node = parse_share_link(share_links[0], local_port, name_override)
+        node["kernel"] = kernel
+        validate_kernel_for_node(node)
+        nodes.append(node)
+        persist_and_reload(nodes)
+        return f"已导入节点“{node['name']}”，内核 {kernel}，本地端口 {local_port}"
+
+    if (name_override or "").strip():
+        raise ValueError("批量导入时不支持统一节点名称，请留空或逐条导入")
+
+    start_port = parse_local_port(requested_port, fallback=next_port(nodes))
+    ensure_port_available(nodes, start_port)
+    used_ports = {int(node["local_port"]) for node in nodes}
+    imported_nodes = []
+    next_port_hint = start_port
+
+    for index, share_link in enumerate(share_links, start=1):
+        try:
+            local_port = next_available_port(used_ports, next_port_hint)
+            node = parse_share_link(share_link, local_port, "")
+            node["kernel"] = kernel
+            validate_kernel_for_node(node)
+        except Exception as exc:
+            raise ValueError(f"第 {index} 行导入失败: {exc}") from exc
+        imported_nodes.append(node)
+        used_ports.add(local_port)
+        next_port_hint = local_port + 1
+
+    persist_and_reload(nodes + imported_nodes)
+    return f"已批量导入 {len(imported_nodes)} 个节点，内核 {kernel}，起始端口 {imported_nodes[0]['local_port']}"
 
 
 def delete_node(form):
