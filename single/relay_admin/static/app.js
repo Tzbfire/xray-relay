@@ -64,7 +64,7 @@ function openEdit(node) {
   editForm.elements.id.value = node.id;
   editForm.elements.name_override.value = node.name || "";
   editForm.elements.local_port.value = node.local_port || "";
-  editForm.elements.kernel.value = node.kernel || "xray";
+  editForm.elements.kernel.value = node.kernel || "sing-box";
   editForm.elements.share_link.value = node.link || "";
   editDialog.showModal();
 }

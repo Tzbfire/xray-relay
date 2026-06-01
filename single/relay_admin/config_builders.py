@@ -15,8 +15,6 @@ def build_stream_settings(node):
         server_name = (node.get("sni") or node.get("host") or "").strip()
         if server_name:
             tls_settings["serverName"] = server_name
-        if node.get("allow_insecure"):
-            tls_settings["allowInsecure"] = True
         fingerprint = (node.get("fingerprint") or "").strip()
         if fingerprint:
             tls_settings["fingerprint"] = fingerprint
