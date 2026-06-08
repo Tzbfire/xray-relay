@@ -2,7 +2,7 @@ from .normalizers import normalize_kernel
 
 
 def allowed_kernels(protocol: str, node: dict | None = None):
-    if protocol in {"hysteria2", "tuic"}:
+    if protocol in {"hysteria2", "tuic", "anytls"}:
         return {"sing-box"}
     if protocol == "shadowsocks" and node and node.get("plugin"):
         return {"sing-box"}

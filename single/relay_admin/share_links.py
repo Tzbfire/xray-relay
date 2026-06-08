@@ -204,6 +204,41 @@ def parse_tuic_link(link: str, local_port: int, name_override: str = ""):
     return node
 
 
+def parse_anytls_link(link: str, local_port: int, name_override: str = ""):
+    parsed = urlparse(link.strip())
+    if parsed.scheme != "anytls":
+        raise ValueError("不是 anytls:// 分享链接")
+    params = parse_qs(parsed.query)
+    insecure_value = params.get("allowInsecure", [None])[0]
+    if insecure_value in (None, ""):
+        insecure_value = params.get("insecure", ["0"])[0]
+    network = (params.get("type", ["tcp"])[0] or "tcp").strip().lower()
+    if network != "tcp":
+        raise ValueError("AnyTLS 当前仅支持 type=tcp")
+    node = {
+        "id": f"node-{uuid.uuid4().hex[:8]}",
+        "name": name_override.strip() or unquote(parsed.fragment or "") or parsed.hostname or f"anytls-{local_port}",
+        "kernel": "sing-box",
+        "protocol": "anytls",
+        "link": link,
+        "local_port": local_port,
+        "address": parsed.hostname or "",
+        "port": int(parsed.port or 443),
+        "password": unquote(parsed.username or ""),
+        "network": network,
+        "tls": normalize_tls(params.get("security", ["tls"])[0]) or "tls",
+        "sni": params.get("sni", [""])[0] or (parsed.hostname or ""),
+        "alpn": params.get("alpn", [""])[0],
+        "fingerprint": params.get("fp", [""])[0],
+        "allow_insecure": truthy(insecure_value),
+    }
+    if node["tls"] != "tls":
+        raise ValueError("AnyTLS 必须启用 TLS")
+    if not node["address"] or not node["port"] or not node["password"]:
+        raise ValueError("AnyTLS 链接缺少必要字段")
+    return node
+
+
 def parse_vmess_link(link: str, local_port: int, name_override: str = ""):
     link = link.strip()
     if not link.startswith("vmess://"):
@@ -287,7 +322,9 @@ def parse_share_link(link: str, local_port: int, name_override: str = ""):
         return parse_hysteria2_link(trimmed, local_port, name_override)
     if trimmed.startswith("tuic://"):
         return parse_tuic_link(trimmed, local_port, name_override)
-    raise ValueError("当前只支持 vmess / vless / trojan / ss / hysteria2 / tuic 分享链接")
+    if trimmed.startswith("anytls://"):
+        return parse_anytls_link(trimmed, local_port, name_override)
+    raise ValueError("当前只支持 vmess / vless / trojan / ss / hysteria2 / tuic / anytls 分享链接")
 
 
 def update_node(existing_node: dict, link: str, local_port: int, name_override: str = ""):

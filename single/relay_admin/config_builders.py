@@ -305,6 +305,29 @@ def build_singbox_outbound(node):
         if alpn:
             outbound["tls"]["alpn"] = [item.strip() for item in alpn.split(",") if item.strip()]
         return outbound
+    elif protocol == "anytls":
+        outbound = {
+            "type": "anytls",
+            "tag": f"relay-{node['id']}",
+            "server": node["address"],
+            "server_port": int(node["port"]),
+            "password": node["password"],
+            "tls": {
+                "enabled": True,
+                "server_name": (node.get("sni") or node["address"]).strip(),
+                "insecure": bool(node.get("allow_insecure")),
+            },
+        }
+        fingerprint = (node.get("fingerprint") or "").strip()
+        if fingerprint:
+            outbound["tls"]["utls"] = {
+                "enabled": True,
+                "fingerprint": fingerprint,
+            }
+        alpn = (node.get("alpn") or "").strip()
+        if alpn:
+            outbound["tls"]["alpn"] = [item.strip() for item in alpn.split(",") if item.strip()]
+        return outbound
     else:
         raise ValueError(f"sing-box 暂不支持该协议：{protocol}")
 

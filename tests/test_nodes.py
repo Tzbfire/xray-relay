@@ -21,6 +21,11 @@ class NodeRulesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "仅支持内核"):
             validate_kernel_for_node(node)
 
+    def test_anytls_only_allows_singbox(self):
+        node = {"protocol": "anytls", "kernel": "xray"}
+        with self.assertRaisesRegex(ValueError, "仅支持内核"):
+            validate_kernel_for_node(node)
+
 
 if __name__ == "__main__":
     unittest.main()
