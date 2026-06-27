@@ -4,7 +4,7 @@
 
 - 管理页端口：`18080`
 - 代理端口范围：`11080-11120`
-- Docker `bridge` 网络
+- Docker `bridge` 双栈网络（IPv4 / IPv6）
 - 前后端分离：Python 提供 JSON API 与内核管理，管理页为静态前端
 - `xray` 单进程承载所有 `kernel=xray` 的节点
 - `sing-box` 单进程承载所有 `kernel=sing-box` 的节点
@@ -33,6 +33,35 @@ docker compose up -d --build
 ```
 
 `docker-compose.yml` 自带默认值，不复制 `.env` 也能直接启动。
+
+**IPv6 出站**
+
+`docker-compose.yml` 默认把项目 `default` 网络配置为 IPv4 / IPv6 双栈网络。容器仍然只需要接入一个 Compose 默认网络，不使用 `network_mode: host`。
+
+默认子网：
+
+- IPv4：`172.24.0.0/16`
+- IPv6：`fd00:dead:beef:30::/64`
+
+如果这些子网与本机其他 Docker 网络冲突，可以在 `.env` 中调整：
+
+```text
+DOCKER_IPV4_SUBNET=172.24.0.0/16
+DOCKER_IPV6_SUBNET=fd00:dead:beef:30::/64
+```
+
+验证方式：
+
+```bash
+docker exec xray-singbox-relay ip addr
+docker exec xray-singbox-relay ping -6 -c 2 2606:4700:4700::1111
+curl -I -x http://127.0.0.1:11080 https://example.com
+```
+
+说明：
+
+- 已存在的 Docker network 不能稳定原地从 IPv4-only 改成双栈；首次切换需要重建该 Compose 网络和容器。
+- 重建后容器只有一个业务网卡，但该网卡同时具备 IPv4 / IPv6 地址。
 
 **状态**
 ```bash
@@ -112,6 +141,8 @@ http://你的机器IP:18080
 - `SINGBOX_BIN`
 - `SINGBOX_CONFIG`
 - `SINGBOX_MODE`
+- `DOCKER_IPV4_SUBNET`
+- `DOCKER_IPV6_SUBNET`
 
 说明：
 
