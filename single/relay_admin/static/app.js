@@ -60,6 +60,21 @@ function fillSettings(settings) {
   settingsForm.elements.singbox_log_level.value = settings.singbox_log_level;
 }
 
+function getLocalPort(node) {
+  const port = Number.parseInt(node.local_port, 10);
+  return Number.isFinite(port) ? port : Number.MAX_SAFE_INTEGER;
+}
+
+function sortNodesByLocalPort(nodes) {
+  return [...nodes].sort((left, right) => {
+    const portDiff = getLocalPort(left) - getLocalPort(right);
+    if (portDiff !== 0) {
+      return portDiff;
+    }
+    return String(left.name || left.id || "").localeCompare(String(right.name || right.id || ""), "zh-Hans-CN");
+  });
+}
+
 function openEdit(node) {
   editForm.elements.id.value = node.id;
   editForm.elements.name_override.value = node.name || "";
@@ -83,12 +98,14 @@ function closeDeleteDialog() {
 }
 
 function renderNodes(nodes) {
-  if (!nodes.length) {
+  const sortedNodes = sortNodesByLocalPort(nodes);
+
+  if (!sortedNodes.length) {
     nodesTable.innerHTML = '<tr><td colspan="4" class="node-meta">当前还没有节点。</td></tr>';
     return;
   }
 
-  nodesTable.innerHTML = nodes
+  nodesTable.innerHTML = sortedNodes
     .map((node) => {
       const meta = [node.kernel, node.protocol, node.network].filter(Boolean).join(" / ");
       const socks = `socks5://127.0.0.1:${node.local_port}#${node.name}`;
@@ -119,7 +136,7 @@ function renderNodes(nodes) {
 
   nodesTable.querySelectorAll("[data-action='edit']").forEach((button) => {
     button.addEventListener("click", () => {
-      const node = nodes.find((item) => item.id === button.dataset.id);
+      const node = sortedNodes.find((item) => item.id === button.dataset.id);
       if (node) {
         openEdit(node);
       }
@@ -128,7 +145,7 @@ function renderNodes(nodes) {
 
   nodesTable.querySelectorAll("[data-action='delete']").forEach((button) => {
     button.addEventListener("click", () => {
-      const node = nodes.find((item) => item.id === button.dataset.id);
+      const node = sortedNodes.find((item) => item.id === button.dataset.id);
       if (!node) {
         return;
       }
