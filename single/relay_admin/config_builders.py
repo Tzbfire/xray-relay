@@ -24,6 +24,25 @@ def build_stream_settings(node):
         if tls_settings:
             stream["tlsSettings"] = tls_settings
 
+    if tls == "reality":
+        public_key = (node.get("public_key") or "").strip()
+        if not public_key:
+            raise ValueError(f"REALITY 节点缺少 public key：{node['name']}")
+        reality_settings = {
+            "serverName": (node.get("sni") or node.get("host") or node.get("address") or "").strip(),
+            "publicKey": public_key,
+        }
+        fingerprint = (node.get("fingerprint") or "").strip()
+        if fingerprint:
+            reality_settings["fingerprint"] = fingerprint
+        short_id = (node.get("short_id") or "").strip()
+        if short_id:
+            reality_settings["shortId"] = short_id
+        spider_x = (node.get("spider_x") or "").strip()
+        if spider_x:
+            reality_settings["spiderX"] = spider_x
+        stream["realitySettings"] = reality_settings
+
     host = (node.get("host") or "").strip()
     path = (node.get("path") or "/").strip() or "/"
     header_type = node.get("header_type") or "none"
@@ -335,12 +354,38 @@ def build_singbox_outbound(node):
         outbound["transport"] = transport
 
     if protocol in {"vmess", "vless", "trojan"}:
-        if normalize_tls(node.get("tls")) == "tls":
+        tls = normalize_tls(node.get("tls"))
+        if tls == "tls":
             outbound["tls"] = {
                 "enabled": True,
                 "server_name": (node.get("sni") or node.get("host") or node["address"]).strip(),
                 "insecure": bool(node.get("allow_insecure")),
             }
+            alpn = (node.get("alpn") or "").strip()
+            if alpn:
+                outbound["tls"]["alpn"] = [item.strip() for item in alpn.split(",") if item.strip()]
+        elif tls == "reality":
+            public_key = (node.get("public_key") or "").strip()
+            if not public_key:
+                raise ValueError(f"REALITY 节点缺少 public key：{node['name']}")
+            outbound["tls"] = {
+                "enabled": True,
+                "server_name": (node.get("sni") or node.get("host") or node["address"]).strip(),
+                "insecure": bool(node.get("allow_insecure")),
+                "reality": {
+                    "enabled": True,
+                    "public_key": public_key,
+                },
+            }
+            short_id = (node.get("short_id") or "").strip()
+            if short_id:
+                outbound["tls"]["reality"]["short_id"] = short_id
+            fingerprint = (node.get("fingerprint") or "").strip()
+            if fingerprint:
+                outbound["tls"]["utls"] = {
+                    "enabled": True,
+                    "fingerprint": fingerprint,
+                }
             alpn = (node.get("alpn") or "").strip()
             if alpn:
                 outbound["tls"]["alpn"] = [item.strip() for item in alpn.split(",") if item.strip()]
